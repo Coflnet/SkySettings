@@ -17,7 +17,7 @@
                 "ASPNETCORE_ENVIRONMENT": "Development"
             }
         },
-        "SkyAuctionBase": {
+        "SkyAuctionSettings": {
             "commandName": "Project",
             "dotnetRunMessages": "true",
             "launchBrowser": true,
