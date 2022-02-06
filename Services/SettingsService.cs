@@ -51,7 +51,7 @@ namespace Coflnet.Sky.Settings.Services
             }
             else
             {
-                if(setting.Value == newValue)
+                if (setting.Value == newValue)
                     return; // nothing changed
                 setting.Value = newValue;
                 db.Update(setting);
@@ -65,7 +65,7 @@ namespace Coflnet.Sky.Settings.Services
             var user = await GetOrCreateUser(userId);
             foreach (var item in settings)
             {
-            await AddOrUpdateSetting(user, item.Key, item.Value);
+                await AddOrUpdateSetting(user, item.Key, item.Value);
             }
             await db.SaveChangesAsync();
         }
@@ -78,7 +78,7 @@ namespace Coflnet.Sky.Settings.Services
         /// <returns></returns>
         public async Task<string> GetSetting(string userId, string settingKey)
         {
-            return (await GetSettings(userId, new List<string>(){settingKey})).FirstOrDefault()?.Value;
+            return (await GetSettings(userId, new List<string>() { settingKey }))?.FirstOrDefault()?.Value;
         }
 
 
@@ -88,11 +88,11 @@ namespace Coflnet.Sky.Settings.Services
         /// <param name="userId"></param>
         /// <param name="keys"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Setting>> GetSettings(string userId, List<string> keys )
+        public async Task<IEnumerable<Setting>> GetSettings(string userId, List<string> keys)
         {
             return (await db.Users
-                .Where(u=>u.ExternalId == userId)
-                .Select(u=> new {settings = u.Settings.Where(s=>keys.Contains(s.Key))})
+                .Where(u => u.ExternalId == userId)
+                .Select(u => new { settings = u.Settings.Where(s => keys.Contains(s.Key)) })
                 .FirstOrDefaultAsync())?.settings;
         }
     }
