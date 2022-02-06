@@ -20,16 +20,18 @@ namespace Coflnet.Sky.Settings.Controllers
     {
         private readonly SettingsDbContext db;
         private readonly SettingsService service;
+        private readonly ILogger<SettingsController> logger;
 
         /// <summary>
         /// Creates a new instance of <see cref="SettingsController"/>
         /// </summary>
         /// <param name="context"></param>
         /// <param name="service"></param>
-        public SettingsController(SettingsDbContext context, SettingsService service)
+        public SettingsController(SettingsDbContext context, SettingsService service, ILogger<SettingsController> logger)
         {
             db = context;
             this.service = service;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -43,6 +45,7 @@ namespace Coflnet.Sky.Settings.Controllers
         [Route("{userId}/{settingKey}")]
         public async Task UpdateSetting(string userId, string settingKey, string newValue)
         {
+            logger.LogInformation($"Updating {settingKey} for user {userId}");
             await service.UpdateSetting(userId,settingKey,newValue);
         }
         /// <summary>
