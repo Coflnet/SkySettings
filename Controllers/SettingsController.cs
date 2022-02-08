@@ -43,7 +43,7 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("{userId}/{settingKey}")]
-        public async Task UpdateSetting(string userId, string settingKey, string newValue)
+        public async Task UpdateSetting(string userId, string settingKey, [FromBody] string newValue)
         {
             logger.LogInformation($"Updating {settingKey} for user {userId}");
             await service.UpdateSetting(userId,settingKey,newValue);
@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("{userId}")]
-        public async Task GetSetting(string userId, List<Setting> settings)
+        public async Task GetSetting(string userId, [FromBody]  List<Setting> settings)
         {
             await service.UpdateSettings(userId,settings);
         }
