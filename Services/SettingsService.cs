@@ -12,6 +12,7 @@ namespace Coflnet.Sky.Settings.Services
     {
         private SettingsDbContext db;
         private ConnectionMultiplexer connection;
+        private static Prometheus.Counter settingsUpdate = Prometheus.Metrics.CreateCounter("sky_settings_update", "How many updates were processed");
 
         public SettingsService(SettingsDbContext db, ConnectionMultiplexer connection)
         {
@@ -24,6 +25,7 @@ namespace Coflnet.Sky.Settings.Services
             var user = await GetOrCreateUser(userId);
             await AddOrUpdateSetting(user, settingKey, newValue);
             await db.SaveChangesAsync();
+            settingsUpdate.Inc();
         }
 
         private async Task<User> GetOrCreateUser(string userId)
