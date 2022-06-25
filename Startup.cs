@@ -3,20 +3,14 @@ using System.IO;
 using System.Reflection;
 using Coflnet.Sky.Settings.Models;
 using Coflnet.Sky.Settings.Services;
-using hypixel;
-using Jaeger.Samplers;
-using Jaeger.Senders;
-using Jaeger.Senders.Thrift;
+using Coflnet.Sky.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using OpenTracing;
-using OpenTracing.Util;
 using Prometheus;
 
 namespace Coflnet.Sky.Settings
@@ -68,6 +62,8 @@ namespace Coflnet.Sky.Settings
             {
                 return StackExchange.Redis.ConnectionMultiplexer.Connect(Configuration["REDIS_HOST"]);
             });
+            services.AddResponseCaching();
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -84,11 +80,10 @@ namespace Coflnet.Sky.Settings
                 c.RoutePrefix = "api";
             });
 
-            app.UseHttpsRedirection();
-
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseResponseCaching();
 
             app.UseEndpoints(endpoints =>
             {

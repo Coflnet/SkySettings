@@ -46,7 +46,7 @@ namespace Coflnet.Sky.Settings.Controllers
         public async Task UpdateSetting(string userId, string settingKey, [FromBody] string newValue)
         {
             logger.LogInformation($"Updating {settingKey} for user {userId}");
-            await service.UpdateSetting(userId,settingKey,newValue);
+            await service.UpdateSetting(userId, settingKey, newValue);
         }
         /// <summary>
         /// Updates multiple settings
@@ -56,9 +56,9 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("{userId}")]
-        public async Task GetSetting(string userId, [FromBody]  List<Setting> settings)
+        public async Task GetSetting(string userId, [FromBody] List<Setting> settings)
         {
-            await service.UpdateSettings(userId,settings);
+            await service.UpdateSettings(userId, settings);
         }
         /// <summary>
         /// Retrieve a single setting value
@@ -68,9 +68,10 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns>The current value </returns>
         [HttpGet]
         [Route("{userId}/{settingKey}")]
+        [ResponseCache(Duration = 10, Location = ResponseCacheLocation.Any, NoStore = false, VaryByQueryKeys = new string[] { "*" })]
         public async Task<string> GetSetting(string userId, string settingKey)
         {
-            return await service.GetSetting(userId,settingKey);
+            return await service.GetSetting(userId, settingKey);
         }
         /// <summary>
         /// retrieve multiple settings
@@ -80,9 +81,10 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns>The current value </returns>
         [HttpGet]
         [Route("{userId}")]
+        [ResponseCache(Duration = 10, Location = ResponseCacheLocation.Any, NoStore = false, VaryByQueryKeys = new string[] { "*" })]
         public async Task<IEnumerable<Setting>> GetSettings(string userId, [FromQuery(Name = "keys")] List<string> settingKeys)
         {
-            return await service.GetSettings(userId,settingKeys);
+            return await service.GetSettings(userId, settingKeys);
         }
     }
 }
