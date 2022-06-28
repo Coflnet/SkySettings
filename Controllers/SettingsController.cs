@@ -68,7 +68,7 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns>The current value </returns>
         [HttpGet]
         [Route("{userId}/{settingKey}")]
-        [ResponseCache(Duration = 10, Location = ResponseCacheLocation.Any, NoStore = false, VaryByQueryKeys = new string[] { "*" })]
+        [ResponseCache(Duration = 1, Location = ResponseCacheLocation.Any, NoStore = false, VaryByQueryKeys = new string[] { "*" })]
         public async Task<string> GetSetting(string userId, string settingKey)
         {
             return await service.GetSetting(userId, settingKey);
