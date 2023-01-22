@@ -22,7 +22,7 @@ namespace Coflnet.Sky.Settings.Services
 
         internal async Task UpdateSetting(string userId, string settingKey, string newValue)
         {
-            await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+            using var trans = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             var user = await GetOrCreateUser(userId);
             await AddOrUpdateSetting(user, settingKey, newValue);
             await db.SaveChangesAsync();
