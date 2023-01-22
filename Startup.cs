@@ -51,7 +51,7 @@ namespace Coflnet.Sky.Settings
                     .EnableDetailedErrors()       // <-- with debugging (remove for production).
             );
             services.AddHostedService<SettingsBackgroundService>();
-            services.AddJaeger();
+            services.AddJaeger(Configuration);
             services.AddTransient<SettingsService>();
             services.AddStackExchangeRedisCache(options =>
             {

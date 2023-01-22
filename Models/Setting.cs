@@ -32,6 +32,11 @@ namespace Coflnet.Sky.Settings.Models
         [DataMember(Name = "value")]
         public string Value { get; set; }
         /// <summary>
+        /// The count of changes used for conflict resolution
+        /// </summary>
+        [DataMember(Name = "changeIndex")]
+        public long ChangeIndex { get; set; }
+        /// <summary>
         /// When this entry was last updated
         /// </summary>
         /// <value></value>

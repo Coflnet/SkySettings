@@ -22,6 +22,7 @@ namespace Coflnet.Sky.Settings.Services
 
         internal async Task UpdateSetting(string userId, string settingKey, string newValue)
         {
+            await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             var user = await GetOrCreateUser(userId);
             await AddOrUpdateSetting(user, settingKey, newValue);
             await db.SaveChangesAsync();
@@ -56,6 +57,7 @@ namespace Coflnet.Sky.Settings.Services
                 if (setting.Value == newValue)
                     return; // nothing changed
                 setting.Value = newValue;
+                setting.ChangeIndex++;
                 db.Update(setting);
             }
             var pubsub = connection.GetSubscriber();
