@@ -43,5 +43,11 @@ namespace Coflnet.Sky.Settings.Models
         [System.ComponentModel.DataAnnotations.Timestamp]
         [DataMember(Name = "lastUpdate")]
         public DateTime LastUpdate { get; set; }
+        /// <summary>
+        /// The user this setting belongs to
+        /// </summary>
+        [IgnoreDataMember]
+        [JsonIgnore]
+        public User User { get; set; }
     }
 }

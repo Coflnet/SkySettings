@@ -56,7 +56,7 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("{userId}")]
-        public async Task GetSetting(string userId, [FromBody] List<Setting> settings)
+        public async Task UpdateSettings(string userId, [FromBody] List<Setting> settings)
         {
             await service.UpdateSettings(userId, settings);
         }

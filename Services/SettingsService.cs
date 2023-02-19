@@ -31,8 +31,7 @@ namespace Coflnet.Sky.Settings.Services
 
         private async Task<User> GetOrCreateUser(string userId)
         {
-            var user = await db.Users.Where(u => u.ExternalId == userId)
-                            .Include(u => u.Settings).FirstOrDefaultAsync();
+            var user = await db.Users.Where(u => u.ExternalId == userId).FirstOrDefaultAsync();
 
             if (user == null)
             {
@@ -46,11 +45,13 @@ namespace Coflnet.Sky.Settings.Services
 
         private async Task AddOrUpdateSetting(User user, string settingKey, string newValue)
         {
-            var setting = user.Settings.Where(s => s.Key == settingKey).FirstOrDefault();
+            var setting = await db.Settings.Where(s => s.Key == settingKey).FirstOrDefaultAsync();
             if (setting == null)
             {
                 setting = new Setting() { Key = settingKey, Value = newValue };
-                user.Settings.Add(setting);
+                setting.User = user;
+                db.Add(setting);
+                //user.Settings.Add(setting);
             }
             else
             {
