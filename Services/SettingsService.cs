@@ -83,7 +83,7 @@ namespace Coflnet.Sky.Settings.Services
         /// <returns></returns>
         public async Task<string> GetSetting(string userId, string settingKey)
         {
-            return await db.Settings.Where(s => s.Key == settingKey && s.User == db.Users.Where(u => u.ExternalId == userId))
+            return await db.Settings.Where(s => s.Key == settingKey && s.User == db.Users.Where(u => u.ExternalId == userId).FirstOrDefault())
                 .Select(s => s.Value)
                 .FirstOrDefaultAsync();
         }
