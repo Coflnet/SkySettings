@@ -45,7 +45,7 @@ namespace Coflnet.Sky.Settings.Services
 
         private async Task AddOrUpdateSetting(User user, string settingKey, string newValue)
         {
-            var setting = await db.Settings.Where(s => s.Key == settingKey).FirstOrDefaultAsync();
+            var setting = await db.Settings.Where(s => s.Key == settingKey && s.User == user).FirstOrDefaultAsync();
             if (setting == null)
             {
                 setting = new Setting() { Key = settingKey, Value = newValue };
