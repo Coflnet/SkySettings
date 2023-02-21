@@ -18,7 +18,7 @@ namespace Coflnet.Sky.Settings.Controllers
     [Route("[controller]")]
     public class SettingsController : ControllerBase
     {
-        private readonly ISettingsService service;
+        private readonly IEnumerable<ISettingsService> services;
         private readonly ILogger<SettingsController> logger;
 
         /// <summary>
@@ -26,9 +26,9 @@ namespace Coflnet.Sky.Settings.Controllers
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public SettingsController(ISettingsService service, ILogger<SettingsController> logger)
+        public SettingsController(IEnumerable<ISettingsService> services, ILogger<SettingsController> logger)
         {
-            this.service = service;
+            this.services = services;
             this.logger = logger;
         }
 
@@ -44,7 +44,10 @@ namespace Coflnet.Sky.Settings.Controllers
         public async Task UpdateSetting(string userId, string settingKey, [FromBody] string newValue)
         {
             logger.LogInformation($"Updating {settingKey} for user {userId}");
-            await service.UpdateSetting(userId, settingKey, newValue);
+            foreach (var service in services)
+            {
+                await service.UpdateSetting(userId, settingKey, newValue);
+            }
         }
         /// <summary>
         /// Updates multiple settings
@@ -56,7 +59,10 @@ namespace Coflnet.Sky.Settings.Controllers
         [Route("{userId}")]
         public async Task UpdateSettings(string userId, [FromBody] List<Setting> settings)
         {
-            await service.UpdateSettings(userId, settings);
+            foreach (var service in services)
+            {
+                await service.UpdateSettings(userId, settings);
+            }
         }
         /// <summary>
         /// Retrieve a single setting value
@@ -69,7 +75,18 @@ namespace Coflnet.Sky.Settings.Controllers
         [ResponseCache(Duration = 3, Location = ResponseCacheLocation.Any, NoStore = false, VaryByQueryKeys = new string[] { "*" })]
         public async Task<string> GetSetting(string userId, string settingKey)
         {
-            return await service.GetSetting(userId, settingKey);
+            foreach (var service in services)
+            {
+                try
+                {
+                    return await service.GetSetting(userId, settingKey);
+                }
+                catch (System.Exception e)
+                {
+                    logger.LogError(e, $"Failed to load setting {settingKey} for user {userId}");
+                }
+            }
+            throw new Coflnet.Sky.Core.CoflnetException("setting_not_found", "Failed to load settings");
         }
         /// <summary>
         /// retrieve multiple settings
@@ -82,7 +99,11 @@ namespace Coflnet.Sky.Settings.Controllers
         [ResponseCache(Duration = 10, Location = ResponseCacheLocation.Any, NoStore = false, VaryByQueryKeys = new string[] { "*" })]
         public async Task<IEnumerable<Setting>> GetSettings(string userId, [FromQuery(Name = "keys")] List<string> settingKeys)
         {
-            return await service.GetSettings(userId, settingKeys);
+            foreach (var service in services)
+            {
+                return await service.GetSettings(userId, settingKeys);
+            }
+            throw new Coflnet.Sky.Core.CoflnetException("setting_not_found", "Failed to load settings");
         }
     }
 }

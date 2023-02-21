@@ -49,7 +49,7 @@ namespace Coflnet.Sky.Settings.Services
                 using var context = scope.ServiceProvider.GetRequiredService<SettingsDbContext>();
                 // make sure all migrations are applied
                 await context.Database.MigrateAsync();
-                var service = scope.ServiceProvider.GetRequiredService<ISettingsService>();
+                var service = scope.ServiceProvider.GetRequiredService<StorageService>();
                 var exists = await service.GetSetting("0", "migrated");
                 if (exists == null)
                 {
