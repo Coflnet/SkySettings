@@ -10,7 +10,7 @@ using Cassandra.Data.Linq;
 
 namespace Coflnet.Sky.Settings.Services
 {
-    public class StorageService : ISettingsService
+    public class StorageService : ISettingsService,IDisposable
     {
         IConfiguration config;
         Cassandra.ISession _session;
@@ -93,6 +93,11 @@ namespace Coflnet.Sky.Settings.Services
         internal async Task Init()
         {
             await GetSession();
+        }
+
+        public void Dispose()
+        {
+            _session?.Dispose();
         }
     }
 }
