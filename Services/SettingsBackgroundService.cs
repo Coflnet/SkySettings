@@ -24,6 +24,7 @@ namespace Coflnet.Sky.Settings.Services
         private IServiceScopeFactory scopeFactory;
         private IConfiguration config;
         private ILogger<SettingsBackgroundService> logger;
+        private StorageService storageService;
 
         /// <summary>
         /// Creates a new instance of <see cref="SettingsBackgroundService"/>
@@ -32,11 +33,12 @@ namespace Coflnet.Sky.Settings.Services
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public SettingsBackgroundService(
-            IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<SettingsBackgroundService> logger)
+            IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<SettingsBackgroundService> logger, StorageService storageService)
         {
             this.scopeFactory = scopeFactory;
             this.config = config;
             this.logger = logger;
+            this.storageService = storageService;
         }
         /// <summary>
         /// Called by asp.net on startup
@@ -49,8 +51,7 @@ namespace Coflnet.Sky.Settings.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 using var context = scope.ServiceProvider.GetRequiredService<SettingsDbContext>();
-                var service = scope.ServiceProvider.GetRequiredService<StorageService>();
-                var exists = await service.GetSetting("0", "migrated");
+                var exists = await storageService.GetSetting("0", "migrated");
 
                 if (exists == null)
                 {
@@ -65,19 +66,17 @@ namespace Coflnet.Sky.Settings.Services
                 using (var innerscope = scopeFactory.CreateScope())
                 using (var innerDb = innerscope.ServiceProvider.GetRequiredService<SettingsDbContext>())
                 {
-                    var service = innerscope.ServiceProvider.GetRequiredService<StorageService>();
                     foreach (var setting in await innerDb.Settings.Where(s => s.User.ExternalId == item).AsNoTracking().ToListAsync())
                     {
                         // update the setting in the storage
-                        await service.UpdateSetting(item, setting.Key, setting.Value);
+                        await storageService.UpdateSetting(item, setting.Key, setting.Value);
                     }
                 }
                 logger.LogInformation($"applied settings for {item} to storage");
             }
             using (var scope = scopeFactory.CreateScope())
             {
-                var service = scope.ServiceProvider.GetRequiredService<StorageService>();
-                await service.UpdateSetting("0", "migrated", "true");
+                await storageService.UpdateSetting("0", "migrated", "true");
             }
             logger.LogInformation("applied all settings to storage");
 
