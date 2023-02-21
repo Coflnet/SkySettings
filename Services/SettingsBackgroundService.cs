@@ -46,22 +46,24 @@ namespace Coflnet.Sky.Settings.Services
         {
             using (var scope = scopeFactory.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<SettingsDbContext>();
+                using var context = scope.ServiceProvider.GetRequiredService<SettingsDbContext>();
                 // make sure all migrations are applied
                 await context.Database.MigrateAsync();
                 var service = scope.ServiceProvider.GetRequiredService<ISettingsService>();
                 var exists = await service.GetSetting("0", "migrated");
-                if (exists == null)
+                if (exists != null)
                 {
                     // iterate over all settings 
-                    foreach (var item in context.Users.Include(u => u.Settings).AsNoTracking())
+                    foreach (var item in context.Users.AsNoTracking())
                     {
                         // iterate over all settings of the user
-                        foreach (var setting in item.Settings)
-                        {
-                            // update the setting in the storage
-                            await service.UpdateSetting(item.ExternalId, setting.Key, setting.Value);
-                        }
+                        using (var innerscope = scopeFactory.CreateScope())
+                        using (var innerDb = innerscope.ServiceProvider.GetRequiredService<SettingsDbContext>())
+                            foreach (var setting in innerDb.Settings.Where(s => s.User.ExternalId == item.ExternalId).AsNoTracking())
+                            {
+                                // update the setting in the storage
+                                await service.UpdateSetting(item.ExternalId, setting.Key, setting.Value);
+                            }
                         logger.LogInformation($"applied settings for {item.ExternalId} to storage");
                     }
                     await service.UpdateSetting("0", "migrated", "true");
