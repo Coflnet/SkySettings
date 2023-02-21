@@ -54,7 +54,7 @@ namespace Coflnet.Sky.Settings.Services
                 if (exists == null)
                 {
                     // iterate over all settings 
-                    foreach (var item in context.Users.Include(u => u.Settings))
+                    foreach (var item in context.Users.Include(u => u.Settings).AsNoTracking())
                     {
                         // iterate over all settings of the user
                         foreach (var setting in item.Settings)
