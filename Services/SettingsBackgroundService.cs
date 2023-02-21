@@ -62,11 +62,10 @@ namespace Coflnet.Sky.Settings.Services
             foreach (var item in toMigrate)
             {
                 // iterate over all settings of the user
-                using (var scope = scopeFactory.CreateScope())
                 using (var innerscope = scopeFactory.CreateScope())
                 using (var innerDb = innerscope.ServiceProvider.GetRequiredService<SettingsDbContext>())
                 {
-                    var service = scope.ServiceProvider.GetRequiredService<StorageService>();
+                    var service = innerscope.ServiceProvider.GetRequiredService<StorageService>();
                     foreach (var setting in await innerDb.Settings.Where(s => s.User.ExternalId == item).AsNoTracking().ToListAsync())
                     {
                         // update the setting in the storage
@@ -76,8 +75,6 @@ namespace Coflnet.Sky.Settings.Services
                 logger.LogInformation($"applied settings for {item} to storage");
             }
             using (var scope = scopeFactory.CreateScope())
-            using (var innerscope = scopeFactory.CreateScope())
-            using (var innerDb = innerscope.ServiceProvider.GetRequiredService<SettingsDbContext>())
             {
                 var service = scope.ServiceProvider.GetRequiredService<StorageService>();
                 await service.UpdateSetting("0", "migrated", "true");
