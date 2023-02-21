@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CassandraCSharpDriver" Version="3.19.1" />
     <PackageReference Include="Confluent.Kafka" Version="1.7.0" />
     <PackageReference Include="Jaeger.Core" Version="1.0.3" />
     <PackageReference Include="Jaeger.Senders.Thrift" Version="1.0.3" />

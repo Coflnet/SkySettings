@@ -18,18 +18,16 @@ namespace Coflnet.Sky.Settings.Controllers
     [Route("[controller]")]
     public class SettingsController : ControllerBase
     {
-        private readonly SettingsDbContext db;
-        private readonly SettingsService service;
+        private readonly ISettingsService service;
         private readonly ILogger<SettingsController> logger;
 
         /// <summary>
         /// Creates a new instance of <see cref="SettingsController"/>
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="logger"></param>
         /// <param name="service"></param>
-        public SettingsController(SettingsDbContext context, SettingsService service, ILogger<SettingsController> logger)
+        public SettingsController(ISettingsService service, ILogger<SettingsController> logger)
         {
-            db = context;
             this.service = service;
             this.logger = logger;
         }

@@ -1,14 +1,22 @@
 using System.Threading.Tasks;
 using Coflnet.Sky.Settings.Models;
-using System;
 using System.Linq;
 using StackExchange.Redis;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using Cassandra.Data.Linq;
 
 namespace Coflnet.Sky.Settings.Services
 {
-    public class SettingsService
+    public interface ISettingsService
+    {
+        Task<string> GetSetting(string userId, string settingKey);
+        Task<IEnumerable<Setting>> GetSettings(string userId, List<string> keys);
+        Task UpdateSetting(string userId, string settingKey, string newValue);
+        Task UpdateSettings(string userId, List<Setting> settings);
+    }
+
+    public class SettingsService : ISettingsService
     {
         private SettingsDbContext db;
         private ConnectionMultiplexer connection;
@@ -20,7 +28,7 @@ namespace Coflnet.Sky.Settings.Services
             this.connection = connection;
         }
 
-        internal async Task UpdateSetting(string userId, string settingKey, string newValue)
+        public async Task UpdateSetting(string userId, string settingKey, string newValue)
         {
             //using var trans = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             var user = await GetOrCreateUser(userId);
@@ -65,7 +73,7 @@ namespace Coflnet.Sky.Settings.Services
             await pubsub.PublishAsync(user.ExternalId + settingKey, newValue);
         }
 
-        internal async Task UpdateSettings(string userId, List<Setting> settings)
+        public async Task UpdateSettings(string userId, List<Setting> settings)
         {
             var user = await GetOrCreateUser(userId);
             foreach (var item in settings)
