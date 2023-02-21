@@ -51,7 +51,7 @@ namespace Coflnet.Sky.Settings.Services
                 await context.Database.MigrateAsync();
                 var service = scope.ServiceProvider.GetRequiredService<ISettingsService>();
                 var exists = await service.GetSetting("0", "migrated");
-                if (exists != null)
+                if (exists == null)
                 {
                     // iterate over all settings 
                     foreach (var item in context.Users.AsNoTracking())
