@@ -20,7 +20,7 @@ namespace Coflnet.Sky.Settings.Services
     {
         private SettingsDbContext db;
         private ConnectionMultiplexer connection;
-        private static Prometheus.Counter settingsUpdate = Prometheus.Metrics.CreateCounter("sky_settings_update", "How many updates were processed");
+        private static Prometheus.Counter failedUpdate = Prometheus.Metrics.CreateCounter("sky_settings_failed_sql_update", "How many updates failed");
 
         public SettingsService(SettingsDbContext db, ConnectionMultiplexer connection)
         {
@@ -33,8 +33,14 @@ namespace Coflnet.Sky.Settings.Services
             //using var trans = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             var user = await GetOrCreateUser(userId);
             await AddOrUpdateSetting(user, settingKey, newValue);
-            await db.SaveChangesAsync();
-            settingsUpdate.Inc();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                failedUpdate.Inc();
+            }
         }
 
         private async Task<User> GetOrCreateUser(string userId)
