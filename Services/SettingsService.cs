@@ -75,8 +75,6 @@ namespace Coflnet.Sky.Settings.Services
                 setting.ChangeIndex++;
                 db.Update(setting);
             }
-            var pubsub = connection.GetSubscriber();
-            await pubsub.PublishAsync(user.ExternalId + settingKey, newValue);
         }
 
         public async Task UpdateSettings(string userId, List<Setting> settings)
