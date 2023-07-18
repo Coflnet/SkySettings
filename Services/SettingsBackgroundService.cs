@@ -81,7 +81,7 @@ namespace Coflnet.Sky.Settings.Services
             logger.LogInformation("applied all settings to storage");
 
 
-            var flipCons = Coflnet.Kafka.KafkaConsumer.Consume<SettingsUpdate>(config["KAFKA_HOST"], config["TOPICS:SETTINGS"], async setting =>
+            var flipCons = Coflnet.Kafka.KafkaConsumer.Consume<SettingsUpdate>(config, config["TOPICS:SETTINGS"], async setting =>
             {
                 var service = GetService();
                 await service.UpdateSetting(setting.UserId, setting.Key, setting.Value);
