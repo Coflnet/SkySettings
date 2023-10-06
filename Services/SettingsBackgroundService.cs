@@ -83,18 +83,13 @@ namespace Coflnet.Sky.Settings.Services
 
             var flipCons = Coflnet.Kafka.KafkaConsumer.Consume<SettingsUpdate>(config, config["TOPICS:SETTINGS"], async setting =>
             {
-                var service = GetService();
+                using var scope = scopeFactory.CreateScope();
+                var service = scope.ServiceProvider.GetRequiredService<ISettingsService>();
                 await service.UpdateSetting(setting.UserId, setting.Key, setting.Value);
             }, stoppingToken, "flipbase");
             logger.LogInformation("applied all migrations");
 
             await Task.WhenAll(flipCons);
-        }
-
-
-        private SettingsService GetService()
-        {
-            return scopeFactory.CreateScope().ServiceProvider.GetRequiredService<SettingsService>();
         }
     }
 }

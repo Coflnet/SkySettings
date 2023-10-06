@@ -53,7 +53,6 @@ namespace Coflnet.Sky.Settings
             services.AddHostedService<SettingsBackgroundService>();
             services.AddJaeger(Configuration);
             services.AddSingleton<ISettingsService,StorageService>();
-            services.AddTransient<ISettingsService,SettingsService>();
             services.AddSingleton<StorageService,StorageService>();
             services.AddStackExchangeRedisCache(options =>
             {
