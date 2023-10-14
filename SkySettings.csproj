@@ -15,17 +15,10 @@
 
   <ItemGroup>
     <PackageReference Include="CassandraCSharpDriver" Version="3.19.1" />
-    <PackageReference Include="Jaeger.Core" Version="1.0.3" />
-    <PackageReference Include="Jaeger.Senders.Thrift" Version="1.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
-    <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.2" />
-    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
   </ItemGroup>
 
 </Project>
