@@ -2,10 +2,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Coflnet.Sky.Settings.Models;
-using System;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using System.Collections;
 using System.Collections.Generic;
 using Coflnet.Sky.Settings.Services;
 
@@ -86,7 +82,7 @@ namespace Coflnet.Sky.Settings.Controllers
                     logger.LogError(e, $"Failed to load setting {settingKey} for user {userId}");
                 }
             }
-            throw new Coflnet.Sky.Core.CoflnetException("setting_not_found", "Failed to load settings");
+            throw new Coflnet.Core.ApiException("setting_not_found", "Failed to load settings");
         }
         /// <summary>
         /// retrieve multiple settings
@@ -103,7 +99,7 @@ namespace Coflnet.Sky.Settings.Controllers
             {
                 return await service.GetSettings(userId, settingKeys);
             }
-            throw new Coflnet.Sky.Core.CoflnetException("setting_not_found", "Failed to load settings");
+            throw new Coflnet.Core.ApiException("setting_not_found", "Failed to load settings");
         }
     }
 }

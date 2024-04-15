@@ -1,4 +1,5 @@
 using System;
+using Cassandra.Mapping.Attributes;
 
 namespace Coflnet.Sky.Settings.Models
 {
@@ -10,7 +11,7 @@ namespace Coflnet.Sky.Settings.Models
         /// <summary>
         /// settings key
         /// </summary>
-        [Cassandra.Mapping.Attributes.ClusteringKey(0)]
+        [ClusteringKey(0)]
         public string Key { get; set; }
         /// <summary>
         /// Value of the setting
@@ -27,7 +28,7 @@ namespace Coflnet.Sky.Settings.Models
         /// <summary>
         /// The userId this setting belongs to
         /// </summary>
-        [Cassandra.Mapping.Attributes.PartitionKey]
+        [PartitionKey]
         public string UserId { get; set; }
     }
 }

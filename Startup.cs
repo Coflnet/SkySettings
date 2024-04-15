@@ -1,16 +1,14 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Coflnet.Core;
 using Coflnet.Sky.Settings.Models;
 using Coflnet.Sky.Settings.Services;
-using Coflnet.Sky.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Prometheus;
 
 namespace Coflnet.Sky.Settings
@@ -28,37 +26,38 @@ namespace Coflnet.Sky.Settings
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSwaggerGen(c =>
+            /*services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkySettings", Version = "v1" });
                 // Set the comments path for the Swagger JSON and UI.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
-            });
-
-            // Replace with your server version and type.
-            // Use 'MariaDbServerVersion' for MariaDB.
-            // Alternatively, use 'ServerVersion.AutoDetect(connectionString)'.
-            // For common usages, see pull request #1233.
-            var serverVersion = new MariaDbServerVersion(new Version(Configuration["MARIADB_VERSION"]));
-
-            // Replace 'YourDbContext' with the name of your own DbContext derived class.
-            services.AddDbContext<SettingsDbContext>(
-                dbContextOptions => dbContextOptions
-                    .UseMySql(Configuration["DB_CONNECTION"], serverVersion)
-                    .EnableSensitiveDataLogging() // <-- These two calls are optional but help
-                    .EnableDetailedErrors()       // <-- with debugging (remove for production).
-            );
-            services.AddHostedService<SettingsBackgroundService>();
-            services.AddJaeger(Configuration);
-            services.AddSingleton<ISettingsService,StorageService>();
-            services.AddSingleton<StorageService,StorageService>();
-            services.AddStackExchangeRedisCache(options =>
+            });*/
+            services.AddOpenApiDocument((settings, di) =>
             {
-                options.Configuration = Configuration["REDIS_HOST"];
-                options.InstanceName = "SkySettings";
+                settings.Title = "SkySettings";
+                settings.Version = "v1";
+                settings.Description = "The settings service for the Coflnet Sky platform";
+                settings.DocumentName = "v1";
+                settings.PostProcess = document =>
+                {
+                    document.Info.Contact = new NSwag.OpenApiContact
+                    {
+                        Name = "Coflnet",
+                    };
+                };
             });
+
+            services.AddHostedService<SettingsBackgroundService>();
+            services.AddCoflnetCore();
+            services.AddSingleton<ISettingsService, StorageService>();
+            services.AddSingleton<StorageService, StorageService>();
+            /* services.AddStackExchangeRedisCache(options =>
+             {
+                 options.Configuration = Configuration["REDIS_HOST"];
+                 options.InstanceName = "SkySettings";
+             });*/
             services.AddSingleton<StackExchange.Redis.ConnectionMultiplexer>((config) =>
             {
                 return StackExchange.Redis.ConnectionMultiplexer.Connect(Configuration["REDIS_HOST"]);
@@ -74,11 +73,18 @@ namespace Coflnet.Sky.Settings
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseSwagger();
+           /* app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkySettings v1");
                 c.RoutePrefix = "api";
+            });*/
+            app.UseOpenApi();
+            app.UseReDoc(c =>
+            {
+                c.DocumentTitle = "SkySettings";
+                c.DocumentPath = "/swagger/v1/swagger.json";
+                c.Path = "/api";
             });
 
             app.UseRouting();

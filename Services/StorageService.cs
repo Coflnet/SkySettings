@@ -13,7 +13,7 @@ namespace Coflnet.Sky.Settings.Services
     public class StorageService : ISettingsService,IDisposable
     {
         IConfiguration config;
-        Cassandra.ISession _session;
+        ISession _session;
         private ConnectionMultiplexer connection;
         private static Prometheus.Counter settingsUpdate = Prometheus.Metrics.CreateCounter("sky_settings_update", "How many updates were processed");
         public StorageService(IConfiguration config, ConnectionMultiplexer connection)
@@ -22,7 +22,7 @@ namespace Coflnet.Sky.Settings.Services
             this.connection = connection;
         }
 
-        public async Task<Cassandra.ISession> GetSession(string keyspace = "settings")
+        public async Task<ISession> GetSession(string keyspace = "settings")
         {
             if (_session != null)
                 return _session;
