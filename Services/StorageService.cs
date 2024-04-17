@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Cassandra;
 using Cassandra.Data.Linq;
+using ISession = Cassandra.ISession;
 
 namespace Coflnet.Sky.Settings.Services
 {
-    public class StorageService : ISettingsService,IDisposable
+    public class StorageService : ISettingsService, IDisposable
     {
         IConfiguration config;
         ISession _session;
@@ -69,7 +70,7 @@ namespace Coflnet.Sky.Settings.Services
         {
             var table = await GetTable();
             var setting = (await table.Where(s => s.UserId == userId && s.Key == settingKey).ExecuteAsync()).FirstOrDefault();
-            if(setting != null && setting.Value == newValue)
+            if (setting != null && setting.Value == newValue)
                 return; // nothing changed (optimization
             var nextId = 1L;
             if (setting != null)
@@ -83,7 +84,6 @@ namespace Coflnet.Sky.Settings.Services
 
         public async Task UpdateSettings(string userId, List<Setting> settings)
         {
-            var table = await GetTable();
             foreach (var item in settings)
             {
                 await UpdateSetting(userId, item.Key, item.Value);

@@ -17,7 +17,6 @@ namespace Coflnet.Sky.Settings.Services
         private IServiceScopeFactory scopeFactory;
         private IConfiguration config;
         private ILogger<SettingsBackgroundService> logger;
-        private StorageService storageService;
         private KafkaConsumer consumer;
 
         /// <summary>
@@ -27,12 +26,11 @@ namespace Coflnet.Sky.Settings.Services
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public SettingsBackgroundService(
-            IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<SettingsBackgroundService> logger, StorageService storageService, KafkaConsumer consumer)
+            IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<SettingsBackgroundService> logger,  KafkaConsumer consumer)
         {
             this.scopeFactory = scopeFactory;
             this.config = config;
             this.logger = logger;
-            this.storageService = storageService;
             this.consumer = consumer;
         }
         /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Cassandra;
 using Coflnet.Core;
 using Coflnet.Sky.Settings.Models;
 using Coflnet.Sky.Settings.Services;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using Prometheus;
 
 namespace Coflnet.Sky.Settings
@@ -48,11 +50,17 @@ namespace Coflnet.Sky.Settings
                     };
                 };
             });
-
+            services.AddCoflnetCore();
             services.AddHostedService<SettingsBackgroundService>();
             services.AddCoflnetCore();
-            services.AddSingleton<ISettingsService, StorageService>();
-            services.AddSingleton<StorageService, StorageService>();
+            if (Configuration.GetSection("OLD_CASSANDRA").Value != null)
+            {
+                services.AddSingleton<ISettingsService, MigrationSettingService>();
+            }
+            else
+            {
+                services.AddSingleton<ISettingsService, StorageService>();
+            }
             /* services.AddStackExchangeRedisCache(options =>
              {
                  options.Configuration = Configuration["REDIS_HOST"];
@@ -73,12 +81,13 @@ namespace Coflnet.Sky.Settings
             {
                 app.UseDeveloperExceptionPage();
             }
-           /* app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkySettings v1");
-                c.RoutePrefix = "api";
-            });*/
+            app.UseCoflnetCore();
+            /* app.UseSwagger();
+             app.UseSwaggerUI(c =>
+             {
+                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkySettings v1");
+                 c.RoutePrefix = "api";
+             });*/
             app.UseOpenApi();
             app.UseReDoc(c =>
             {
