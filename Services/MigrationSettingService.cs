@@ -22,8 +22,8 @@ public class MigrationSettingService : ISettingsService
 
     public MigrationSettingService(ISession session, OldSession oldSession, ConnectionMultiplexer connection, ILogger<MigrationSettingService> logger)
     {
-        this.table = new Table<CassandraSetting>(session);
-        this.oldTable = new Table<CassandraSetting>(oldSession.Session);
+        table = new Table<CassandraSetting>(session);
+        oldTable = new Table<CassandraSetting>(oldSession.Session);
         table.CreateIfNotExistsAsync();
         this.connection = connection;
         this.logger = logger;
