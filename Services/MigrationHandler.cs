@@ -21,7 +21,7 @@ public class MigrationHandler<T, ToT>
     ILogger<MigrationHandler<T, ToT>> logger;
     private readonly ConnectionMultiplexer redis;
     Counter migrated;
-    private int pageSize = 2000;
+    private int pageSize = 1000;
     Func<T, ToT> map;
 
     public MigrationHandler(Func<Table<T>> oldTableFactory, ISession session, ILogger<MigrationHandler<T, ToT>> logger, ConnectionMultiplexer redis, Func<Table<ToT>> newTableFactory, Func<T, ToT> map)
@@ -39,7 +39,7 @@ public class MigrationHandler<T, ToT>
     {
         newTableFactory().CreateIfNotExists();
         var tableName = newTableFactory().Name;
-        var prefix = $"cassandra_migration_{tableName}_";
+        var prefix = $"c_migration_{tableName}_";
         migrated = Metrics.CreateCounter($"{prefix}migrated", "The number of items migrated");
         var db = redis.GetDatabase();
         var pagingSateRedis = db.StringGet($"{prefix}paging_state");
@@ -65,12 +65,6 @@ public class MigrationHandler<T, ToT>
         {
             _ = Task.Run(async () =>
             {
-                if (offset < 262440000)
-                {
-                    UpdateMigrateState(prefix, db, offset, page);
-                    Interlocked.Add(ref offset, page.Count);
-                    return; // already migrated but state lost
-                }
                 for (int i = 0; i < 10; i++)
                 {
                     try
