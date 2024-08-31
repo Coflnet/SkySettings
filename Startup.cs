@@ -61,6 +61,10 @@ namespace Coflnet.Sky.Settings
             {
                 services.AddSingleton<ISettingsService, StorageService>();
             }
+            if(Configuration["MIGRATOR"]?.Equals("true") ?? false)
+            {
+                services.AddHostedService<MigrationService>();
+            }
             /* services.AddStackExchangeRedisCache(options =>
              {
                  options.Configuration = Configuration["REDIS_HOST"];
