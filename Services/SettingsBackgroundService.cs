@@ -6,6 +6,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Coflnet.Kafka;
+using StackExchange.Redis;
+using Cassandra;
 
 namespace Coflnet.Sky.Settings.Services
 {
@@ -26,7 +28,8 @@ namespace Coflnet.Sky.Settings.Services
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public SettingsBackgroundService(
-            IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<SettingsBackgroundService> logger,  KafkaConsumer consumer)
+            IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<SettingsBackgroundService> logger, KafkaConsumer consumer,
+            /*Warm start*/ ConnectionMultiplexer redis, ISession cassandra)
         {
             this.scopeFactory = scopeFactory;
             this.config = config;
