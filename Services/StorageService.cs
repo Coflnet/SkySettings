@@ -4,8 +4,6 @@ using System;
 using System.Linq;
 using StackExchange.Redis;
 using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
-using Cassandra;
 using Cassandra.Data.Linq;
 using ISession = Cassandra.ISession;
 
@@ -13,35 +11,17 @@ namespace Coflnet.Sky.Settings.Services
 {
     public class StorageService : ISettingsService, IDisposable
     {
-        IConfiguration config;
         ISession _session;
         private ConnectionMultiplexer connection;
         private static Prometheus.Counter settingsUpdate = Prometheus.Metrics.CreateCounter("sky_settings_update", "How many updates were processed");
-        public StorageService(IConfiguration config, ConnectionMultiplexer connection)
+        public StorageService(ISession session, ConnectionMultiplexer connection)
         {
-            this.config = config;
+            this._session = session;
             this.connection = connection;
         }
 
         public async Task<ISession> GetSession(string keyspace = "settings")
         {
-            if (_session != null)
-                return _session;
-            var cluster = Cluster.Builder()
-                                .WithCredentials(config["CASSANDRA:USER"], config["CASSANDRA:PASSWORD"])
-                                .AddContactPoints(config["CASSANDRA:HOSTS"]?.Split(",") ?? throw new System.Exception("No ASSANDRA:HOSTS defined in config"))
-                                .WithDefaultKeyspace(keyspace)
-                                .Build();
-            if (keyspace == null)
-                return await cluster.ConnectAsync();
-            var replication = new Dictionary<string, string>()
-            {
-                {"class", config["CASSANDRA:REPLICATION_CLASS"]},
-                {"replication_factor", config["CASSANDRA:REPLICATION_FACTOR"]}
-            };
-            _session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists(replication);
-
-            await (await GetTable(_session)).CreateIfNotExistsAsync();
             return _session;
         }
 
