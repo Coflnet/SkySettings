@@ -53,15 +53,8 @@ namespace Coflnet.Sky.Settings
             services.AddCoflnetCore();
             services.AddHostedService<SettingsBackgroundService>();
             services.AddCoflnetCore();
-            if (Configuration["OLD_CASSANDRA:HOSTS"] != null)
-            {
-                services.AddSingleton<ISettingsService, MigrationSettingService>();
-            }
-            else
-            {
-                services.AddSingleton<ISettingsService, StorageService>();
-            }
-            if(Configuration["MIGRATOR"]?.Equals("true") ?? false)
+            services.AddSingleton<ISettingsService, StorageService>();
+            if (Configuration["MIGRATOR"]?.Equals("true") ?? false)
             {
                 services.AddHostedService<MigrationService>();
             }

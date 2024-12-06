@@ -16,7 +16,7 @@ namespace Coflnet.Sky.Settings.Services
         private static Prometheus.Counter settingsUpdate = Prometheus.Metrics.CreateCounter("sky_settings_update", "How many updates were processed");
         public StorageService(ISession session, ConnectionMultiplexer connection)
         {
-            this._session = session;
+            _session = session;
             this.connection = connection;
         }
 
@@ -34,8 +34,7 @@ namespace Coflnet.Sky.Settings.Services
 
         private async Task<Table<CassandraSetting>> GetTable(ISession session = null)
         {
-            if (session == null)
-                session = await GetSession();
+            session ??= await GetSession();
             return new Table<CassandraSetting>(session);
         }
 
