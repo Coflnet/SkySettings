@@ -48,6 +48,11 @@ namespace Coflnet.Sky.Settings.Services
         public async Task UpdateSetting(string userId, string settingKey, string newValue)
         {
             var table = await GetTable();
+            if(newValue == null)
+            {
+                await table.Where(s => s.UserId == userId && s.Key == settingKey).Delete().ExecuteAsync();
+                return;
+            }
             var setting = (await table.Where(s => s.UserId == userId && s.Key == settingKey).ExecuteAsync()).FirstOrDefault();
             if (setting != null && setting.Value == newValue)
                 return; // nothing changed (optimization
