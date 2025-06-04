@@ -37,7 +37,7 @@ namespace Coflnet.Sky.Settings.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("{userId}/{settingKey}")]
-        public async Task UpdateSetting(string userId, string settingKey, [FromBody] string newValue)
+        public async Task UpdateSetting(string userId, string settingKey, [FromBody] string? newValue)
         {
             logger.LogInformation($"Updating {settingKey} for user {userId}");
             foreach (var service in services)
