@@ -11,13 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Coflnet.Core" Version="0.2.0" />
+    <PackageReference Include="Coflnet.Core" Version="0.7.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NSwag.AspNetCore" Version="14.1.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
+    <PackageReference Include="NSwag.AspNetCore" Version="14.7.1" />
+    <PackageReference Include="StackExchange.Redis" Version="3.0.17" />
   </ItemGroup>
 
 </Project>
