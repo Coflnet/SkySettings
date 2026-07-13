@@ -79,4 +79,10 @@ public class MigrationSettingService : ISettingsService
             await UpdateSetting(userId, item.Key, item.Value);
         }
     }
+
+    public async Task DeleteUser(string userId)
+    {
+        await table.Where(s => s.UserId == userId).Delete().ExecuteAsync();
+        await oldTable.Where(s => s.UserId == userId).Delete().ExecuteAsync();
+    }
 }

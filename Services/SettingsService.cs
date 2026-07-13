@@ -10,5 +10,6 @@ namespace Coflnet.Sky.Settings.Services
         Task<IEnumerable<Setting>> GetSettings(string userId, List<string> keys);
         Task UpdateSetting(string userId, string settingKey, string newValue);
         Task UpdateSettings(string userId, List<Setting> settings);
+        Task DeleteUser(string userId);
     }
 }

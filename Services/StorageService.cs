@@ -74,6 +74,12 @@ namespace Coflnet.Sky.Settings.Services
             }
         }
 
+        public async Task DeleteUser(string userId)
+        {
+            var table = await GetTable();
+            await table.Where(s => s.UserId == userId).Delete().ExecuteAsync();
+        }
+
         internal async Task Init()
         {
             await GetSession();

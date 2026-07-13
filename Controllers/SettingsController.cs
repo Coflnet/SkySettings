@@ -61,6 +61,21 @@ namespace Coflnet.Sky.Settings.Controllers
             }
         }
         /// <summary>
+        /// Deletes all settings of a user, used when the account itself is deleted
+        /// </summary>
+        /// <param name="userId">the user to remove all settings of</param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("{userId}")]
+        public async Task DeleteUser(string userId)
+        {
+            logger.LogInformation($"Deleting all settings of user {userId}");
+            foreach (var service in services)
+            {
+                await service.DeleteUser(userId);
+            }
+        }
+        /// <summary>
         /// Retrieve a single setting value
         /// </summary>
         /// <param name="userId">the userId for the key</param>
