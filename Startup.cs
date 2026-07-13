@@ -28,31 +28,9 @@ namespace Coflnet.Sky.Settings
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            /*services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkySettings", Version = "v1" });
-                // Set the comments path for the Swagger JSON and UI.
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
-            });*/
-            services.AddOpenApiDocument((settings, di) =>
-            {
-                settings.Title = "SkySettings";
-                settings.Version = "v1";
-                settings.Description = "The settings service for the Coflnet Sky platform";
-                settings.DocumentName = "v1";
-                settings.PostProcess = document =>
-                {
-                    document.Info.Contact = new NSwag.OpenApiContact
-                    {
-                        Name = "Coflnet",
-                    };
-                };
-            });
+
             services.AddCoflnetCore();
             services.AddHostedService<SettingsBackgroundService>();
-            services.AddCoflnetCore();
             services.AddSingleton<ISettingsService, StorageService>();
             if (Configuration["MIGRATOR"]?.Equals("true") ?? false)
             {
@@ -85,13 +63,6 @@ namespace Coflnet.Sky.Settings
                  c.SwaggerEndpoint("/swagger/v1/swagger.json", "SkySettings v1");
                  c.RoutePrefix = "api";
              });*/
-            app.UseOpenApi();
-            app.UseReDoc(c =>
-            {
-                c.DocumentTitle = "SkySettings";
-                c.DocumentPath = "/swagger/v1/swagger.json";
-                c.Path = "/api";
-            });
 
             app.UseRouting();
 
