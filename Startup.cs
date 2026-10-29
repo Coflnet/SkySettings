@@ -12,6 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Prometheus;
+using Coflnet.Sky.Settings.Infrastructure;
+using Microsoft.AspNetCore.Http;
+using StackExchange.Redis;
 
 namespace Coflnet.Sky.Settings
 {
@@ -45,6 +48,7 @@ namespace Coflnet.Sky.Settings
             {
                 return StackExchange.Redis.ConnectionMultiplexer.Connect(Configuration["REDIS_HOST"]);
             });
+            services.AddSingleton<IConnectionMultiplexer>(p => p.GetRequiredService<ConnectionMultiplexer>());
             services.AddResponseCaching();
             services.AddMemoryCache();
         }
@@ -73,6 +77,18 @@ namespace Coflnet.Sky.Settings
             {
                 endpoints.MapMetrics();
                 endpoints.MapControllers();
+                endpoints.MapGet("/health/ready", async context =>
+                {
+                    try
+                    {
+                        await DatabaseReadiness.CheckAsync(context.RequestServices, context.RequestAborted);
+                        context.Response.StatusCode = StatusCodes.Status200OK;
+                    }
+                    catch (System.Exception)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                    }
+                });
             });
         }
     }

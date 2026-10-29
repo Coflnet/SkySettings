@@ -3,7 +3,7 @@ WORKDIR /build/sky
 COPY SkySettings.csproj SkySettings.csproj
 RUN dotnet restore
 COPY . .
-RUN dotnet publish -c release -o /app
+RUN dotnet test -c Debug && dotnet publish -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra
 WORKDIR /app
