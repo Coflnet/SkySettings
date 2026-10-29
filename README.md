@@ -32,14 +32,15 @@ These checks do not write settings or publish notifications. Verify application 
 and notification delivery separately before advancing the rollout.
 
 Before HTTP starts, a separate Kafka transport check makes one all-topics metadata
-request and checks only the configured `TOPICS__SETTINGS` locally. No topic name is
-sent in the request, avoiding implicit topic creation. The metadata timeout is three
+request and requires a broker response, even when no topics are visible. No topic name
+is sent in the request, avoiding implicit topic creation. The metadata timeout is three
 seconds, with a five-second overall deadline. It uses existing endpoint/SASL configuration and
 `KAFKA__TLS__CA_LOCATION`, `CERTIFICATE_LOCATION`, `KEY_LOCATION` file paths, with
 strict CA and hostname validation. Errors expose only a generic type or Kafka code.
 Recurring readiness does not repeat Kafka handshakes. This startup check proves neither
-consumer group progress, delivery nor certificate renewal; retain the separate native
-upgrade/consumer-only reload and delivery gates.
+consumer group progress, delivery nor certificate renewal. Missing, lazy-created or
+unauthorized topics remain a separate consumer/delivery gate; no topic or ACL changes
+are made by startup. Retain the separate native upgrade/consumer-only reload gate.
 
 The Docker build runs `dotnet test -c Debug` before publishing Release; test sources
 and test dependencies are excluded from the runtime publication.

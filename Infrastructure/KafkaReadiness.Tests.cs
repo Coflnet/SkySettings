@@ -12,23 +12,18 @@ namespace Coflnet.Sky.Settings.Infrastructure;
 
 public class KafkaReadinessTests
 {
-    private static IConfiguration Configuration(string topic = "synthetic-settings") =>
+    private static IConfiguration Configuration(string brokers = "broker.invalid:9093") =>
         new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string>
         {
-            ["TOPICS:SETTINGS"] = topic, ["KAFKA:BROKERS"] = "broker.invalid:9093",
+            ["KAFKA:BROKERS"] = brokers,
             ["KAFKA:USERNAME"] = "synthetic-user", ["KAFKA:PASSWORD"] = "synthetic-password",
             ["KAFKA:TLS:CA_LOCATION"] = "synthetic-ca.pem",
             ["KAFKA:TLS:CERTIFICATE_LOCATION"] = "synthetic-client.pem", ["KAFKA:TLS:KEY_LOCATION"] = "synthetic-client.key"
         }).Build();
 
-    private static Metadata Metadata(string topic = "synthetic-settings", ErrorCode error = ErrorCode.NoError) =>
-        new Metadata(new List<BrokerMetadata>(), new List<TopicMetadata>
-        {
-            new TopicMetadata(topic, new List<PartitionMetadata>
-            {
-                new PartitionMetadata(0, 1, new[] { 1 }, new[] { 1 }, new Error(ErrorCode.NoError))
-            }, new Error(error))
-        }, 1, "synthetic-broker");
+    private static Metadata Metadata(bool hasBroker = true, List<TopicMetadata> topics = null) =>
+        new Metadata(hasBroker ? new List<BrokerMetadata> { new BrokerMetadata(1, "synthetic-broker", 9093) }
+            : new List<BrokerMetadata>(), topics ?? new List<TopicMetadata>(), 1, "synthetic-broker");
 
     [Test]
     public async Task StartupUsesExistingAccountAndTlsFilesWithoutANameBearingMetadataRequest()
@@ -68,7 +63,7 @@ public class KafkaReadinessTests
     }
 
     [Test]
-    public void MissingTopicConfigurationDoesNotConstructANativeClient()
+    public void MissingBrokerConfigurationDoesNotConstructANativeClient()
     {
         var factory = new Mock<Func<AdminClientConfig, IAdminClient>>();
         var failure = Assert.ThrowsAsync<InvalidOperationException>(() => KafkaReadiness.CheckAsync(Configuration(null), factory.Object));
@@ -76,28 +71,44 @@ public class KafkaReadinessTests
         factory.Verify(f => f(It.IsAny<AdminClientConfig>()), Times.Never);
     }
 
-    [TestCase("another-topic", ErrorCode.NoError)]
-    [TestCase("synthetic-settings", ErrorCode.TopicAuthorizationFailed)]
-    public void MissingOrUnauthorizedTopicPreventsStartup(string topic, ErrorCode error)
+    [Test]
+    public void ResponseWithoutAnyBrokerPreventsStartup()
     {
         var client = new Mock<IAdminClient>();
-        client.Setup(c => c.GetMetadata(TimeSpan.FromSeconds(3))).Returns(Metadata(topic, error));
-        Assert.ThrowsAsync<InvalidOperationException>(() => KafkaReadiness.CheckAsync(Configuration(), _ => client.Object));
+        client.Setup(c => c.GetMetadata(TimeSpan.FromSeconds(3))).Returns(Metadata(hasBroker: false));
+        var failure = Assert.ThrowsAsync<InvalidOperationException>(() => KafkaReadiness.CheckAsync(Configuration(), _ => client.Object));
+        Assert.That(failure.Message, Is.EqualTo("Kafka startup metadata check failed (Local_AllBrokersDown)."));
         client.Verify(c => c.GetMetadata(TimeSpan.FromSeconds(3)), Times.Once);
         client.Verify(c => c.Dispose(), Times.Once);
         client.VerifyNoOtherCalls();
     }
 
     [Test]
-    public void NativeFailureExposesOnlyCodeAndNeverPrivateReasonOrInnerException()
+    public async Task TopicAuthorizationIsSeparateFromSuccessfulBrokerTransport()
+    {
+        var client = new Mock<IAdminClient>();
+        client.Setup(c => c.GetMetadata(TimeSpan.FromSeconds(3))).Returns(Metadata(topics: new List<TopicMetadata>
+        {
+            new TopicMetadata("unrelated-hidden-topic", new List<PartitionMetadata>(), new Error(ErrorCode.TopicAuthorizationFailed))
+        }));
+        await KafkaReadiness.CheckAsync(Configuration(), _ => client.Object);
+        client.Verify(c => c.GetMetadata(TimeSpan.FromSeconds(3)), Times.Once);
+        client.Verify(c => c.Dispose(), Times.Once);
+        client.VerifyNoOtherCalls();
+    }
+
+    [TestCase(ErrorCode.Local_Authentication)]
+    [TestCase(ErrorCode.Local_Transport)]
+    public void NativeFailureExposesOnlyCodeAndNeverPrivateReasonOrInnerException(ErrorCode code)
     {
         var client = new Mock<IAdminClient>();
         client.Setup(c => c.GetMetadata(It.IsAny<TimeSpan>()))
-            .Throws(new KafkaException(new Error(ErrorCode.Local_Authentication, "synthetic-private-native-reason")));
+            .Throws(new KafkaException(new Error(code, "synthetic-private-native-reason")));
         var failure = Assert.ThrowsAsync<InvalidOperationException>(() => KafkaReadiness.CheckAsync(Configuration(), _ => client.Object));
-        Assert.That(failure.Message, Is.EqualTo("Kafka startup metadata check failed (Local_Authentication)."));
+        Assert.That(failure.Message, Is.EqualTo("Kafka startup metadata check failed (" + code + ")."));
         Assert.That(failure.InnerException, Is.Null);
         Assert.That(failure.ToString(), Does.Not.Contain("synthetic-private-native-reason"));
+        client.Verify(c => c.Dispose(), Times.Once);
     }
 
     [Test]

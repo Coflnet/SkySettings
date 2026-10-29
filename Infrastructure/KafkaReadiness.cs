@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Coflnet.Kafka;
 using Confluent.Kafka;
@@ -14,11 +13,11 @@ internal static class KafkaReadiness
     {
         try
         {
-            var topic = configuration["TOPICS:SETTINGS"];
-            if (string.IsNullOrWhiteSpace(topic)) throw new ArgumentException("Settings topic must be configured.");
             await Task.Run(() =>
             {
                 var config = KafkaCreator.GetClientConfig(configuration);
+                if (string.IsNullOrWhiteSpace(config.BootstrapServers))
+                    throw new ArgumentException("Kafka brokers must be configured.");
                 if (config.SecurityProtocol is not (SecurityProtocol.Ssl or SecurityProtocol.SaslSsl))
                     throw new InvalidOperationException("External Kafka transport requires TLS.");
                 config.EnableSslCertificateVerification = true;
@@ -27,13 +26,8 @@ internal static class KafkaReadiness
                     .SetLogHandler((_, _) => { }).SetErrorHandler((_, _) => { }).Build() : factory(config);
                 // An all-topics request cannot implicitly create a named topic.
                 var metadata = client.GetMetadata(TimeSpan.FromSeconds(3));
-                var settings = metadata.Topics.SingleOrDefault(item => item.Topic == topic);
-                if (settings is null)
-                    throw new KafkaException(new Error(ErrorCode.UnknownTopicOrPart));
-                if (settings.Error.IsError) throw new KafkaException(settings.Error);
-                if (settings.Partitions.Count == 0) throw new KafkaException(new Error(ErrorCode.UnknownTopicOrPart));
-                var failed = settings.Partitions.FirstOrDefault(item => item.Error.IsError);
-                if (failed is not null) throw new KafkaException(failed.Error);
+                if (metadata.Brokers.Count == 0)
+                    throw new KafkaException(new Error(ErrorCode.Local_AllBrokersDown));
             }).WaitAsync(TimeSpan.FromSeconds(5));
         }
         catch (KafkaException error)
