@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Coflnet.Sky.Settings.Models;
 using System.Collections.Generic;
 using Coflnet.Sky.Settings.Services;
+using System.Diagnostics;
 
 namespace Coflnet.Sky.Settings.Controllers
 {
@@ -86,14 +87,19 @@ namespace Coflnet.Sky.Settings.Controllers
         [ResponseCache(Duration = 3, Location = ResponseCacheLocation.Any, NoStore = false, VaryByQueryKeys = new string[] { "*" })]
         public async Task<string> GetSetting(string userId, string settingKey)
         {
+            using var activity = SettingsTelemetry.ActivitySource.StartActivity("settings.get", ActivityKind.Internal);
+            activity?.SetTag("settings.key", settingKey);
             foreach (var service in services)
             {
                 try
                 {
-                    return await service.GetSetting(userId, settingKey);
+                    var value = await service.GetSetting(userId, settingKey);
+                    activity?.SetTag("settings.found", value != null);
+                    return value;
                 }
                 catch (System.Exception e)
                 {
+                    activity?.SetStatus(ActivityStatusCode.Error, e.Message);
                     logger.LogError(e, $"Failed to load setting {settingKey} for user {userId}");
                 }
             }

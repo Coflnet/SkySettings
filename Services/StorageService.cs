@@ -6,6 +6,8 @@ using StackExchange.Redis;
 using System.Collections.Generic;
 using Cassandra.Data.Linq;
 using ISession = Cassandra.ISession;
+using System.Diagnostics;
+using Prometheus;
 
 namespace Coflnet.Sky.Settings.Services
 {
@@ -14,6 +16,9 @@ namespace Coflnet.Sky.Settings.Services
         ISession _session;
         private ConnectionMultiplexer connection;
         private static Prometheus.Counter settingsUpdate = Prometheus.Metrics.CreateCounter("sky_settings_update", "How many updates were processed");
+        private static readonly Histogram queryDuration = Metrics.CreateHistogram(
+            "sky_settings_storage_duration_seconds", "Time spent executing settings storage operations",
+            new HistogramConfiguration { LabelNames = ["operation"], Buckets = Histogram.ExponentialBuckets(0.001, 2, 14) });
         public StorageService(ISession session, ConnectionMultiplexer connection)
         {
             _session = session;
@@ -27,9 +32,15 @@ namespace Coflnet.Sky.Settings.Services
 
         public async Task<string> GetSetting(string userId, string settingKey)
         {
+            using var activity = SettingsTelemetry.ActivitySource.StartActivity("cassandra.settings.get", ActivityKind.Client);
+            activity?.SetTag("db.system", "cassandra");
+            activity?.SetTag("settings.key", settingKey);
+            using var timer = queryDuration.WithLabels("get").NewTimer();
             var table = await GetTable();
             var result = await table.Where(s => s.UserId == userId && s.Key == settingKey).Select(s => s.Value).ExecuteAsync();
-            return result.FirstOrDefault();
+            var value = result.FirstOrDefault();
+            activity?.SetTag("settings.found", value != null);
+            return value;
         }
 
         private async Task<Table<CassandraSetting>> GetTable(ISession session = null)
@@ -40,6 +51,10 @@ namespace Coflnet.Sky.Settings.Services
 
         public async Task<IEnumerable<Setting>> GetSettings(string userId, List<string> keys)
         {
+            using var activity = SettingsTelemetry.ActivitySource.StartActivity("cassandra.settings.get_many", ActivityKind.Client);
+            activity?.SetTag("db.system", "cassandra");
+            activity?.SetTag("settings.key_count", keys.Count);
+            using var timer = queryDuration.WithLabels("get_many").NewTimer();
             var table = await GetTable();
             var result = await table.Where(s => s.UserId == userId && keys.Contains(s.Key)).ExecuteAsync();
             return result.Select(s => new Setting() { Key = s.Key, Value = s.Value });

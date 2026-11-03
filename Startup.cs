@@ -31,6 +31,7 @@ namespace Coflnet.Sky.Settings
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSettingsActivitySource();
 
             services.AddCoflnetCore();
             services.AddHostedService<SettingsBackgroundService>();
