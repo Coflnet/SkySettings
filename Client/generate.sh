@@ -4,7 +4,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 
 # Single source of truth for the published client version. Bump this (and merge to main) to
 # cut a release: the Package GitHub Actions workflow triggers on changes to this file.
-VERSION="0.3.0"
+VERSION="0.3.1"
 PACKAGE_NAME=Coflnet.Sky.Settings.Client
 
 # Where to read the OpenAPI document from. Defaults to a locally running API (the historical
@@ -49,6 +49,12 @@ sed -i '/<\/PropertyGroup>/a\
   <ItemGroup>\
     <None Include="..\/..\/..\/..\/README.md" Pack="true" PackagePath="\\"\/>\
   </ItemGroup>' $path
+
+# Reuse one pooled HttpClient per base URL (RestSharp useClientFactory). Without it every API call builds
+# a new RestClient/HttpClient, i.e. a new TCP connection and DNS lookup per request.
+apiClient=src/$PACKAGE_NAME/Client/ApiClient.cs
+sed -i 's/new CustomJsonCodec(SerializerSettings, configuration))))$/new CustomJsonCodec(SerializerSettings, configuration)), useClientFactory: true))/' $apiClient
+[ "$(grep -c 'new RestClient(' $apiClient)" -gt 0 ] && [ "$(grep -c 'new RestClient(' $apiClient)" = "$(grep -c 'useClientFactory: true))' $apiClient)" ] || { echo "ApiClient.cs useClientFactory patch did not cover every new RestClient( site" >&2; exit 1; }
 
 pack_args=()
 if [[ -n "${GITHUB_SHA:-}" ]]; then
